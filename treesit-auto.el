@@ -68,6 +68,11 @@ by manipulating the `treesit-auto-recipe-list' variable."
   :type '(alist :key-type symbol :value-type function)
   :group 'treesit)
 
+(defcustom treesit-auto-install-dir nil
+  "Directory to install language grammars into."
+  :type 'directory
+  :group 'treesit)
+
 (cl-defstruct treesit-auto-recipe
   "Emacs metadata for a tree-sitter language grammar."
   lang ts-mode remap requires url revision source-dir cc c++ ext)
@@ -471,7 +476,7 @@ Non-nil only if installation completed without any errors."
     ;; warning buffer. I don't think this is by design but just
     ;; because of the way `display-warning' works, so this might not
     ;; work in the future.
-    (not (treesit-install-language-grammar lang))))
+    (not (treesit-install-language-grammar lang treesit-auto-install-dir))))
 
 (defun treesit-auto--get-mode-recipe (&optional mode)
   "Look up the recipe for MODE.  If MODE is nil, use the current `major-mode'."
@@ -533,7 +538,8 @@ how to modify the behavior of this function."
       (princ prompt))
     (when (or (eq treesit-auto-install t) ; Quiet mode is off
               (y-or-n-p "Install missing grammars? "))
-      (mapcar 'treesit-install-language-grammar to-install))))
+	  (dolist (lang to-install)
+		(treesit-install-language-grammar lang treesit-auto-install-dir)))))
 
 (define-minor-mode treesit-auto-mode
   "Toggle `global-treesit-auto-mode'."
